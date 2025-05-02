@@ -43,6 +43,7 @@ def callback(request: Request):
         full = service.users().messages().get(
             userId='me', id=msg['id'], format='full'
         ).execute()
+        
         parts = full['payload'].get('parts', [])
         body = ''
         for part in parts:
@@ -51,16 +52,18 @@ def callback(request: Request):
                 if data:
                     body = base64.urlsafe_b64decode(data.encode()).decode()
                 break
+
         summary = summarize_email(body, f"email{i+1}")
-        print("summary issssssss",summary)
-        
+        print("summary issssssss", summary)
+
         if isinstance(summary, dict):
             summary_map.update(summary)
         else:
             print("⚠️ Summary not a dict:", summary)
 
+    # ✅ Move this outside the loop to store all summaries
+    summaries_cache["latest"] = summary_map
 
-            summaries_cache["latest"] = summary_map
     return RedirectResponse(url="/index.html?done=true")
 
 @app.get("/summaries")
